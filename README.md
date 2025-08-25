@@ -1,221 +1,317 @@
-# Template for creating OpenSearch Plugins
-This Repo is a GitHub Template repository ([Learn more about that](https://docs.github.com/articles/creating-a-repository-from-a-template/)).
-Using it would create a new repo that is the boilerplate code required for an [OpenSearch Plugin](https://opensearch.org/blog/technical-posts/2021/06/my-first-steps-in-opensearch-plugins/). 
-This plugin on its own would not add any functionality to OpenSearch, but it is still ready to be installed.
-It comes packaged with:
- - Integration tests of two types: Yaml and IntegTest.
- - Empty unit tests file
- - Notice and License files (Apache License, Version 2.0)
- - A `build.gradle` file supporting this template's current state.
+# PII Masking Plugin for OpenSearch
 
----
----
-1. [Create your plugin repo using this template](#create-your-plugin-repo-using-this-template)
-   - [Official plugins](#official-plugins)
-   - [Thirdparty plugins](#thirdparty-plugins)
-2. [Fix up the template to match your new plugin requirements](#fix-up-the-template-to-match-your-new-plugin-requirements)
-   - [Plugin Name](#plugin-name)
-   - [Plugin Path](#plugin-path)
-   - [Update the `build.gradle` file](#update-the-buildgradle-file)
-   - [Update the tests](#update-the-tests)
-   - [Running the tests](#running-the-tests)
-   - [Running testClusters with the plugin installed](#running-testclusters-with-the-plugin-installed)
-   - [Cleanup template code](#cleanup-template-code)
-   - [Editing the CI workflow](#Editing-the-CI-workflow)
-3. [License](#license)
-4. [Copyright](#copyright)
----
----
+![Build Status](https://img.shields.io/badge/build-passing-brightgreen)
+![License](https://img.shields.io/badge/license-Apache%202.0-blue)
+![OpenSearch](https://img.shields.io/badge/OpenSearch-2.x-orange)
 
-## Create your plugin repo using this template
-Click on "Use this Template"
+A powerful OpenSearch plugin that automatically detects and masks Personally Identifiable Information (PII) in documents during indexing. Protect sensitive data with zero application changes required.
 
-![Use this Template](https://docs.github.com/assets/images/help/repository/use-this-template-button.png)
+## 🔐 Overview
 
-Name the repository, and provide a description.
+The PII Masking Plugin provides **real-time PII protection** at the OpenSearch level, ensuring sensitive data like emails, Social Security Numbers, credit cards, and phone numbers are automatically masked before being stored in your cluster.
 
-Depending on the plugin relationship with the OpenSearch organization we currently recommend the following naming conventions and optional follow-up checks:
+### Key Benefits
+- 🛡️ **Automatic Protection** - No application code changes required
+- ⚡ **Real-time Processing** - PII is masked during document ingestion 
+- 📜 **Compliance Ready** - Built-in audit logging for regulatory requirements
+- ⚙️ **Configurable** - Customize patterns and masking rules per organization
+- 🚫 **Optional Blocking** - Strict mode can reject documents containing PII
 
-### Official plugins
+## ✨ Features
 
-For the **official plugins** that live within the OpenSearch organization (i.e. they are included in [OpenSearch/plugins/](https://github.com/opensearch-project/OpenSearch/tree/main/plugins) or [OpenSearch/modules/](https://github.com/opensearch-project/OpenSearch/tree/main/modules) folder), and **which share the same release cycle as OpenSearch** itself:
+| Feature | Description | Status |
+|---------|-------------|--------|
+| 🔍 **PII Detection** | Regex-based detection for emails, SSNs, credit cards, phone numbers | ✅ |
+| ✂️ **Smart Masking** | Configurable masking patterns (e.g., `john@example.com` → `****@example.com`) | ✅ |
+| 📝 **Audit Logging** | Complete audit trail of all masking operations | ✅ |
+| ⚙️ **Field-level Control** | Configure which document fields to scan | ✅ |
+| 🚫 **Strict Mode** | Block document indexing if PII detected (optional) | ✅ |
+| 🔧 **Zero Configuration** | Works out-of-the-box with sensible defaults | ✅ |
 
-- Do not include the word `plugin` in the repo name (e.g. [job-scheduler](https://github.com/opensearch-project/job-scheduler))
-- Use lowercase repo names
-- Use spinal case for repo names (e.g. [job-scheduler](https://github.com/opensearch-project/job-scheduler))
-- Do not include the word `OpenSearch` or `OpenSearch Dashboards` in the repo name
-- Provide a meaningful description, e.g. `An OpenSearch Dashboards plugin to perform real-time and historical anomaly detection on OpenSearch data`.
+## 🚀 Quick Start
 
-### Thirdparty plugins
+### Prerequisites
+- OpenSearch 2.x
+- Java 11 or higher
 
-For the **3rd party plugins** that are maintained as independent projects in separate GitHub repositories **with their own release cycles** the recommended naming convention should follow the same rules as official plugins with some exceptions and few follow-up checks:
+### Installation
 
-- Inclusion of the words like `OpenSearch` or `OpenSearch Dashboard` (and in reasonable cases even `plugin`) are welcome because they can increase the chance of discoverability of the repository
-- Check the plugin versioning policy is documented and help users know which versions of the plugin are compatible and recommended for specific versions of OpenSearch 
-- Review [CONTRIBUTING.md](CONTRIBUTING.md) document which is by default tailored to the needs of Amazon Web Services developer teams. You might want to update or further customize specific parts related to:
-  - **Code of Conduct** (if you do not already have CoC policy then there are several options to start with, such as [Contributor Covenant](https://www.contributor-covenant.org/)),
-  - **Security Policy** (you should let users know how they can safely report security vulnerabilities),
-  - Check if you need explicit part about **Trademarks and Attributions** (if you use any registered or non-registered trademarks we recommend following applicable "trademark-use" documents provided by respective trademark owners)
+1. **Build the plugin:**
+   ```bash
+   ./gradlew build
+   ```
 
-## Fix up the template to match your new plugin requirements
+2. **Install to OpenSearch:**
+   ```bash
+   # The plugin zip will be in build/distributions/
+   bin/opensearch-plugin install file:///path/to/pii-masking-*.zip
+   ```
 
-This is the file tree structure of the source code, as you can see there are some things you will want to change.
+3. **Restart OpenSearch cluster**
 
-```
-`-- src
-    |-- main
-    |   `-- java
-    |       `-- org
-    |           `-- example
-    |               `-- path
-    |                   `-- to
-    |                       `-- plugin
-    |                           `-- RenamePlugin.java
-    |-- test
-    |   `-- java
-    |       `-- org
-    |           `-- example
-    |               `-- path
-    |                   `-- to
-    |                       `-- plugin
-    |                           |-- RenamePluginIT.java
-    |                           `-- RenameTests.java
-    `-- yamlRestTest
-        |-- java
-        |   `-- org
-        |       `-- example
-        |           `-- path
-        |               `-- to
-        |                   `-- plugin
-        |                       `-- RenameClientYamlTestSuiteIT.java
-        `-- resources
-            `-- rest-api-spec
-                `-- test
-                    `-- 10_basic.yml
+4. **Verify installation:**
+   ```bash
+   curl -X GET "localhost:9200/_cat/plugins?v"
+   ```
+   Expected output:
+   ```
+   name         component   version
+   node-1       pii-masking unspecified
+   ```
 
-```
+### Basic Usage
 
-### Plugin Name
-Now that you have named the repo, you can change the plugin class `RenamePlugin.java` to have a meaningful name, keeping the `Plugin` suffix.
-Change `RenamePluginIT.java`, `RenameTests.java`, and `RenameClientYamlTestSuiteIT.java` accordingly, keeping the `PluginIT`, `Tests`, and `ClientYamlTestSuiteIT` suffixes.
+1. **Create an ingest pipeline:**
+   ```bash
+   curl -X PUT "localhost:9200/_ingest/pipeline/pii-pipeline" \
+   -H 'Content-Type: application/json' \
+   -d '{
+     "description": "Pipeline that masks PII in documents",
+     "processors": [
+       {
+         "pii-masking": {}
+       }
+     ]
+   }'
+   ```
 
-### Plugin Path 
-You will need to change these paths in the source tree:
+2. **Index a document with PII:**
+   ```bash
+   curl -X POST "localhost:9200/logs/_doc?pipeline=pii-pipeline" \
+   -H 'Content-Type: application/json' \
+   -d '{
+     "message": "User john.doe@example.com logged in with SSN 123-45-6789",
+     "user": {
+       "email": "admin@company.com"
+     }
+   }'
+   ```
 
-1) Package Path
-    ```
-    `-- org
-        `-- example
-    ```
-    Let's call this our *package path*. In Java, package naming convention is to use a domain name in order to create a unique package name.
-    This is normally your organization's domain.
+3. **View the masked result:**
+   ```bash
+   curl -X GET "localhost:9200/logs/_search?pretty"
+   ```
 
-2) Plugin Path
-    ```
-     `-- path
-         `-- to
-             `-- plugin
-    ```
-    Let's call this our *plugin path*, as the plugin class would be installed in OpenSearch under that path.
-    This can be an existing path in OpenSearch, or it can be a unique path for your plugin. We recommend changing it to something meaningful.
+   **Result - PII Automatically Masked:**
+   ```json
+   {
+     "_source": {
+       "message": "User ****@example.com logged in with SSN ***-**-****",
+       "user": {
+         "email": "****@example.com"
+       }
+     }
+   }
+   ```
 
-3) Change all these path occurrences to match your chosen path and naming by following [this](#update-the-buildgradle-file) section
+## 📋 Supported PII Types
 
-### Update the `build.gradle` file
+| PII Type | Pattern | Default Mask | Example |
+|----------|---------|--------------|---------|
+| **Email** | `[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}` | `****@example.com` | `john@company.com` → `****@example.com` |
+| **SSN** | `\b\d{3}-\d{2}-\d{4}\b` | `***-**-****` | `123-45-6789` → `***-**-****` |
+| **Credit Card** | `\b(?:\d[ -]*?){13,16}\b` | `****-****-****-****` | `4532 1234 5678 9012` → `****-****-****-****` |
+| **Phone** | `\b\d{3}-\d{3}-\d{4}\b` | `***-***-****` | `555-123-4567` → `***-***-****` |
 
-Update the following section, using the new repository name and description, plugin class name, package and plugin paths:
+### Default Monitored Fields
+The plugin scans these document fields by default:
+- `message`
+- `user.email`  
+- `details`
 
-```
-def pluginName = 'rename'                // Can be the same as new repo name except including words `plugin` or `OpenSearch` is discouraged
-def pluginDescription = 'Custom plugin'  // Can be same as new repo description
-def packagePath = 'org.example'          // The package name for your plugin (convention is to use your organization's domain name)
-def pathToPlugin = 'path.to.plugin'      // The path you chose for the plugin
-def pluginClassName = 'RenamePlugin'     // The plugin class name
-```
+## ⚙️ Configuration
 
-Next update the version of OpenSearch you want the plugin to be installed into. Change the following param:
-```
-    ext {
-        opensearch_version = "1.0.0-beta1" // <-- change this to the version your plugin requires
+### Global Configuration (Default)
+```json
+{
+  "enabled": true,
+  "auditIndex": "pii-audit-log",
+  "strictMode": false,
+  "fieldsToCheck": ["message", "user.email", "details"],
+  "maskingRules": {
+    "email": {
+      "pattern": "[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}",
+      "mask": "****@example.com"
+    },
+    "ssn": {
+      "pattern": "\\b\\d{3}-\\d{2}-\\d{4}\\b", 
+      "mask": "***-**-****"
     }
-```
-
-- Run `./gradlew preparePluginPathDirs` in the terminal
-- Move the java classes into the new directories (will require to edit the `package` name in the files as well)
-- Delete the old directories (the `org.example` directories)
-
-### Update the tests
-Notice that in the tests we are checking that the plugin was installed by sending a GET `/_cat/plugins` request to the cluster and expecting `rename` to be in the response.
-In order for the tests to pass you must change `rename` in `RenamePluginIT.java` and in `10_basic.yml` to be the `pluginName` you defined in the `build.gradle` file in the previous section.
-
-### Running the tests
-You may need to install OpenSearch and build a local artifact for the integration tests and build tools ([Learn more here](https://github.com/opensearch-project/opensearch-plugins/blob/main/BUILDING.md)):
-
-```
-~/OpenSearch (main)> git checkout 1.0.0-beta1 -b beta1-release
-~/OpenSearch (main)> ./gradlew publishToMavenLocal -Dbuild.version_qualifier=beta1 -Dbuild.snapshot=false
-```
-
-Now you can run all the tests like so:
-```
-./gradlew check
-```
-
-### Running testClusters with the plugin installed 
-```
-./gradlew run
-```
-
-Then you can see that your plugin has been installed by running: 
-```
-curl -XGET 'localhost:9200/_cat/plugins'
-```
-
-### Cleanup template code
-- You can now delete the unused paths - `path/to/plugin`.
-- Remove this from the `build.gradle`:
-
-```
-tasks.register("preparePluginPathDirs") {
-    mustRunAfter clean
-    doLast {
-        def newPath = pathToPlugin.replace(".", "/")
-        mkdir "src/main/java/$packagePath/$newPath"
-        mkdir "src/test/java/$packagePath/$newPath"
-        mkdir "src/yamlRestTest/java/$packagePath/$newPath"
-    }
+  }
 }
 ```
 
-- Last but not least, add your own `README.md` instead of this one 
+### Strict Mode
+Enable strict mode to **block documents** containing unmasked PII:
 
-### Editing the CI workflow
-You may want to edit the CI of your new repo.
-  
-In your new GitHub repo, head over to `.github/workflows/CI.yml`. This file describes the workflow for testing new push or pull-request actions on the repo.
-Currently, it is configured to build the plugin and run all the tests in it.
-
-You may need to alter the dependencies required by your new plugin.
-Also, the **OpenSearch version** in the `Build OpenSearch` and in the `Build and Run Tests` steps should match your plugins version in the `build.gradle` file.
-
-To view more complex CI examples you may want to checkout the workflows in official OpenSearch plugins, such as [anomaly-detection](https://github.com/opensearch-project/anomaly-detection/blob/main/.github/workflows/test_build_multi_platform.yml).
-
-## Your Plugin's License
-Source code files in this template contains the following header:
+```json
+{
+  "processors": [
+    {
+      "pii-masking": {
+        "strict_mode": true
+      }
+    }
+  ]
+}
 ```
-/*
-* SPDX-License-Identifier: Apache-2.0
-*
-* The OpenSearch Contributors require contributions made to
-* this file be licensed under the Apache-2.0 license or a
-* compatible open source license.
-  */
+
+When strict mode is enabled and PII is detected, indexing will fail with:
+```json
+{
+  "error": "Document contains PII and strict mode is enabled. Document blocked."
+}
 ```
-This plugin template is indeed open-sourced while you might choose to use it to create a proprietary plugin.
-Be sure to update your plugin to meet any licensing requirements you may be subject to.
 
-## License
-This code is licensed under the Apache 2.0 License. See [LICENSE.txt](LICENSE.txt).
+## 🧪 Testing
 
-## Copyright
-Copyright OpenSearch Contributors. See [NOTICE](NOTICE.txt) for details.
+### Run All Tests
+```bash
+./gradlew check
+```
+
+### Integration Tests
+```bash
+./gradlew integTest
+```
+
+### Manual Testing
+Start OpenSearch with the plugin:
+```bash
+./gradlew run
+```
+
+Then test using the examples in the [DEMO_GUIDE.md](DEMO_GUIDE.md).
+
+## 📊 Monitoring & Audit Logging
+
+All PII masking activities are automatically logged to OpenSearch logs with detailed information:
+
+```
+[2025-08-25T18:31:40.808Z] PII masked - Index: logs, DocId: abc123, Field: message, 
+Type: email, Original: john@example.com, Masked: ****@example.com
+
+[2025-08-25T18:31:40.809Z] PII masked - Index: logs, DocId: abc123, Field: message, 
+Type: ssn, Original: 123-45-6789, Masked: ***-**-****
+```
+
+### Audit Log Format
+- **Timestamp**: ISO 8601 format
+- **Action**: `masked` or `blocked`
+- **Index**: Target index name
+- **Document ID**: Document identifier
+- **Field**: Document field containing PII
+- **PII Type**: Type of PII detected (`email`, `ssn`, `credit_card`, `phone`)
+- **Original**: Original PII value (for audit purposes)
+- **Masked**: Replacement value used
+
+## 🏗️ Architecture
+
+```mermaid
+graph LR
+    A[Document] --> B[Ingest Pipeline]
+    B --> C[PII Masking Processor]
+    C --> D[PII Detector]
+    C --> E[Audit Logger]
+    C --> F[Masked Document]
+    F --> G[OpenSearch Index]
+    E --> H[Audit Logs]
+```
+
+### Core Components
+
+- **PIIMaskingPlugin**: Main plugin class and OpenSearch integration
+- **PIIMaskingProcessor**: Ingest processor that handles document processing
+- **PIIDetector**: Regex-based PII detection and masking engine
+- **AuditLogger**: Compliance logging for all masking operations
+- **PIIConfiguration**: Configurable rules and patterns
+
+### Processing Flow
+
+1. **Document Ingestion**: Document arrives via index API or bulk API
+2. **Pipeline Processing**: Ingest pipeline routes document to PII processor
+3. **Field Scanning**: Processor scans configured fields for PII patterns
+4. **PII Detection**: Regex patterns identify sensitive information
+5. **Masking**: Detected PII replaced with configured mask values
+6. **Audit Logging**: All operations logged for compliance
+7. **Indexing**: Masked document stored in OpenSearch
+
+## 🔧 Development
+
+### Building from Source
+```bash
+git clone https://github.com/gaurav2612gupta/pii-masking-plugin.git
+cd pii-masking-plugin
+./gradlew build
+```
+
+### Project Structure
+```
+src/
+├── main/java/org/opensearch/plugin/piimasking/
+│   ├── PIIMaskingPlugin.java           # Main plugin class
+│   ├── processor/
+│   │   └── PIIMaskingProcessor.java     # Ingest processor implementation
+│   ├── detector/
+│   │   └── PIIDetector.java             # PII detection engine
+│   ├── audit/
+│   │   └── AuditLogger.java             # Audit logging
+│   └── config/
+│       └── PIIConfiguration.java       # Configuration management
+└── test/
+    └── java/org/opensearch/plugin/piimasking/
+        ├── PIIMaskingTests.java         # Unit tests
+        └── PIIMaskingPluginIT.java      # Integration tests
+```
+
+## 🤝 Contributing
+
+We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) for details.
+
+### Development Workflow
+1. Fork the repository
+2. Create a feature branch
+3. Add tests for new functionality
+4. Ensure all tests pass: `./gradlew check`
+5. Submit a pull request
+
+### Reporting Issues
+- Use GitHub Issues for bug reports and feature requests
+- Include OpenSearch version, plugin version, and reproduction steps
+- For security issues, please follow responsible disclosure practices
+
+## 📜 License
+
+This project is licensed under the Apache License 2.0 - see the [LICENSE.txt](LICENSE.txt) file for details.
+
+## 🏆 Use Cases
+
+### Compliance & Regulatory
+- **GDPR Compliance**: Prevent accidental storage of EU personal data
+- **HIPAA Protection**: Mask healthcare information in logs
+- **PCI DSS**: Protect credit card information in transaction logs
+- **SOX Compliance**: Audit trail for financial data protection
+
+### Industry Applications
+- **Financial Services**: Mask account numbers, SSNs in transaction logs
+- **Healthcare**: Protect patient information in system logs  
+- **E-commerce**: Secure customer PII in order processing logs
+- **SaaS Platforms**: Protect tenant data across multi-tenant systems
+
+### Operational Security
+- **Log Aggregation**: Safe centralization of application logs
+- **Analytics**: Enable data analysis without exposing sensitive information
+- **Debugging**: Allow development access to production data safely
+- **Incident Response**: Investigate issues without PII exposure
+
+## 📞 Support
+
+- **Documentation**: [DEMO_GUIDE.md](DEMO_GUIDE.md) for detailed examples
+- **Issues**: [GitHub Issues](https://github.com/gaurav2612gupta/pii-masking-plugin/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/gaurav2612gupta/pii-masking-plugin/discussions)
+
+---
+
+**Protect your data automatically with the PII Masking Plugin! 🛡️**
+
+Built with ❤️ for the OpenSearch community
