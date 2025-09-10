@@ -1,8 +1,7 @@
 # PII Masking Plugin for OpenSearch
 
-![Build Status](https://img.shields.io/badge/build-passing-brightgreen)
 ![License](https://img.shields.io/badge/license-Apache%202.0-blue)
-![OpenSearch](https://img.shields.io/badge/OpenSearch-2.x-orange)
+![OpenSearch](https://img.shields.io/badge/OpenSearch-3.x-orange)
 
 A powerful OpenSearch plugin that automatically detects and masks Personally Identifiable Information (PII) in documents during indexing. Protect sensitive data with zero application changes required.
 
@@ -31,23 +30,35 @@ The PII Masking Plugin provides **real-time PII protection** at the OpenSearch l
 ## 🚀 Quick Start
 
 ### Prerequisites
-- OpenSearch 2.x
-- Java 11 or higher
+- OpenSearch 3.x
+- Java 21 or higher
 
 ### Installation
 
-1. **Build the plugin:**
+#### Traditional Plugin Installation
+
+The PII Masking Plugin follows OpenSearch's standard plugin installation process using the `opensearch-plugin` command-line tool.
+
+1. **Build the plugin ZIP:**
    ```bash
    ./gradlew build
    ```
+   This creates a complete plugin package at: `build/distributions/pii-masking.zip`
 
-2. **Install to OpenSearch:**
+2. **Install using opensearch-plugin command:**
    ```bash
-   # The plugin zip will be in build/distributions/
-   bin/opensearch-plugin install file:///path/to/pii-masking-*.zip
+   ./bin/opensearch-plugin install file:///absolute/path/to/pii-masking-plugin/build/distributions/pii-masking.zip
    ```
+   
+   **Note:** Use the absolute file path to the ZIP file. The `opensearch-plugin install` command:
+   - Validates the plugin structure and compatibility
+   - Extracts the plugin to OpenSearch's plugins directory
+   - Registers the plugin with OpenSearch's plugin management system
 
 3. **Restart OpenSearch cluster**
+   ```bash
+   ./bin/opensearch
+   ```
 
 4. **Verify installation:**
    ```bash
@@ -58,6 +69,32 @@ The PII Masking Plugin provides **real-time PII protection** at the OpenSearch l
    name         component   version
    node-1       pii-masking unspecified
    ```
+
+#### How the Build System Handles Plugin Packaging
+
+The plugin uses OpenSearch's Gradle plugin system for automated packaging:
+
+```gradle
+apply plugin: 'opensearch.opensearchplugin'  // Core plugin functionality
+apply plugin: 'opensearch.pluginzip'         // Creates installable ZIP package
+```
+
+**Automated Build Process:**
+1. **Compilation**: Java source code compiled to bytecode
+2. **Dependency Resolution**: All required libraries bundled
+3. **Metadata Generation**: `plugin-descriptor.properties` auto-generated with:
+   - Plugin name, version, and description
+   - Main class entry point (`org.opensearch.plugin.piimasking.PIIMaskingPlugin`)
+   - OpenSearch and Java version compatibility
+4. **ZIP Creation**: Complete plugin package created in `build/distributions/`
+
+**What's Included in the ZIP:**
+- Compiled JAR files with all plugin classes
+- Auto-generated `plugin-descriptor.properties` (OpenSearch's plugin manifest)
+- License files (`LICENSE.txt`, `NOTICE.txt`)
+- All dependencies required for plugin operation
+
+This automated approach ensures the plugin ZIP is always compatible with OpenSearch's plugin installation requirements without manual configuration files.
 
 ### Basic Usage
 
@@ -284,34 +321,12 @@ We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) f
 
 This project is licensed under the Apache License 2.0 - see the [LICENSE.txt](LICENSE.txt) file for details.
 
-## 🏆 Use Cases
-
-### Compliance & Regulatory
-- **GDPR Compliance**: Prevent accidental storage of EU personal data
-- **HIPAA Protection**: Mask healthcare information in logs
-- **PCI DSS**: Protect credit card information in transaction logs
-- **SOX Compliance**: Audit trail for financial data protection
-
-### Industry Applications
-- **Financial Services**: Mask account numbers, SSNs in transaction logs
-- **Healthcare**: Protect patient information in system logs  
-- **E-commerce**: Secure customer PII in order processing logs
-- **SaaS Platforms**: Protect tenant data across multi-tenant systems
-
-### Operational Security
-- **Log Aggregation**: Safe centralization of application logs
-- **Analytics**: Enable data analysis without exposing sensitive information
-- **Debugging**: Allow development access to production data safely
-- **Incident Response**: Investigate issues without PII exposure
 
 ## 📞 Support
 
 - **Documentation**: [DEMO_GUIDE.md](DEMO_GUIDE.md) for detailed examples
 - **Issues**: [GitHub Issues](https://github.com/gaurav2612gupta/pii-masking-plugin/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/gaurav2612gupta/pii-masking-plugin/discussions)
 
 ---
 
 **Protect your data automatically with the PII Masking Plugin! 🛡️**
-
-Built with ❤️ for the OpenSearch community

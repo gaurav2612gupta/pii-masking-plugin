@@ -11,12 +11,11 @@ This OpenSearch plugin automatically detects and masks PII (Personally Identifia
 # Build the plugin
 ./gradlew build
 
-# The plugin zip will be in: build/distributions/pii-masking-*.zip
-# Install it to your OpenSearch cluster:
-# bin/opensearch-plugin install file:///path/to/pii-masking-*.zip
+# Install using opensearch-plugin command
+./bin/opensearch-plugin install file:///absolute/path/to/pii-masking-plugin/build/distributions/pii-masking.zip
 
 # Start OpenSearch cluster
-# The plugin runs automatically as an ingest processor
+./bin/opensearch
 ```
 
 ### Step 2: Verify Plugin Installation
@@ -249,17 +248,6 @@ curl -X GET "localhost:9200/logs/_search?pretty"
 - **False Positives**: "Patterns are designed to be conservative; can be fine-tuned"
 - **Why not upstream**: "OpenSearch level provides universal protection regardless of application"
 - **Strict mode**: "Can block documents entirely if PII detected (not enabled by default)"
-
-## 🏗️ Architecture
-
-The plugin implements an OpenSearch **Ingest Processor** that:
-1. **Intercepts** every document during indexing
-2. **Scans** configured fields for PII patterns
-3. **Masks** detected PII with configurable replacement text
-4. **Logs** all masking activities for audit trails
-5. **Allows** the processed document to continue to indexing
-
-This approach ensures **zero application changes** are required - protection happens automatically at the OpenSearch layer.
 
 ---
 
